@@ -24,7 +24,7 @@ class TaskController extends Controller
     public function index()
     {
         $tasks = Task::with('author')->get();
-        return view('tasks.index', compact('tasks', $tasks));
+        return view('tasks.index', ['tasks' => $tasks]);
     }
 
     /**
@@ -58,13 +58,13 @@ class TaskController extends Controller
             'user_id' => $userId,
         ]);
 
-        $file = $validation['image'];
-        $fileName = $task->id . '-' . md5($file->getClientOriginalName()) . time() . '.' . $file->getClientOriginalExtension();
-        $uploadedFile = $file->storeAs(config('app.tasks_images_path'), $fileName);
-        if ($uploadedFile) {
-            Image::create(['file' => $fileName,'task_id' => $task->id]);
-        } else {
-
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $fileName = $task->id . '-' . md5($file->getClientOriginalName()) . time() . '.' . $file->getClientOriginalExtension();
+            $uploadedFile = $file->storeAs(config('app.tasks_images_path'), $fileName);
+            if ($uploadedFile) {
+                Image::create(['file' => $fileName,'task_id' => $task->id]);
+            }
         }
 
         return redirect('/tasks/' . $task->id);
@@ -83,7 +83,7 @@ class TaskController extends Controller
             function () use ($id) {
                 return Task::find($id);
             });
-        return view('tasks.show', compact('task', $task));
+        return view('tasks.show', ['task' => $task]);
     }
 
     /**
@@ -94,7 +94,7 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
-        return view('tasks.edit', compact('task', $task));
+        return view('tasks.edit', ['task' => $task]);
     }
 
     /**
